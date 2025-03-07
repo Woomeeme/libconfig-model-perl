@@ -36,10 +36,11 @@ Build-Depends-Indep: dh-sequence-bash-completion,
                      libtext-levenshtein-damerau-perl,
                      libyaml-tiny-perl,
                      po-debconf
-Standards-Version: 4.6.0
+Standards-Version: 4.6.1
 Vcs-Browser: https://salsa.debian.org/perl-team/modules/packages/libconfig-model-perl
 Vcs-Git: https://salsa.debian.org/perl-team/modules/packages/libconfig-model-perl.git
 Homepage: https://github.com/dod38fr/config-model/wiki
+Rules-Requires-Root: no
 
 Package: libconfig-model-perl
 Architecture: all
@@ -69,7 +70,9 @@ Recommends: bash-completion,
 Suggests: libconfig-model-dpkg-perl,
           libconfig-model-openssh-perl,
           libterm-readline-perl-perl | libterm-readline-gnu-perl
-Breaks: libconfig-model-itself-perl (<< 2.019),
+Breaks: cme (<<1.036),
+        libconfig-model-dpkg-perl (<<2.162),
+        libconfig-model-itself-perl (<< 2.019),
         libconfig-model-tkui-perl (<< 1.371-1)
 Description: module for describing and editing configuration data
  Config::Model is a Perl framework that enables project developers to provide

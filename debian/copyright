@@ -4,12 +4,12 @@ Upstream-Contact: Dominique Dumont <ddumont@cpan.org>
 Source: https://metacpan.org/release/Config-Model
 
 Files: *
-Copyright: 2005-2021, Dominique Dumont <ddumont@cpan.org>
+Copyright: 2005-2022, Dominique Dumont <ddumont@cpan.org>
            2005-2011, Krzysztof Tyszecki
 License: LGPL-2.1+
 
 Files: debian/*
-Copyright: 2008-2021, Dominique Dumont <dod@debian.org>
+Copyright: 2008-2022, Dominique Dumont <dod@debian.org>
  2009-2018, gregor herrmann <gregoa@debian.org>
  2011, Fabrizio Regalli <fabreg@fabreg.it>
  2010-2011, Jonathan Yu <jawnsy@cpan.org>

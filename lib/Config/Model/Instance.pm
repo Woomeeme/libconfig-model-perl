@@ -1,13 +1,13 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2005-2021 by Dominique Dumont.
+# This software is Copyright (c) 2005-2022 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-package Config::Model::Instance 2.145;
+package Config::Model::Instance 2.152;
 
 #use Scalar::Util qw(weaken) ;
 use strict;
@@ -36,6 +36,7 @@ use Carp qw/carp croak confess cluck/;
 
 my $logger        = get_logger("Instance");
 my $change_logger = get_logger("Anything::Change");
+my $user_logger = get_logger("User");
 
 has [qw/root_class_name/] => ( is => 'ro', isa => 'Str', required => 1 );
 
@@ -104,6 +105,7 @@ has changes => (
     handles => {
         add_change => 'push',
         c_count    => 'count',
+        has_changes => 'count',
 
         #needs_save => 'count' ,
         clear_changes => 'clear',
@@ -114,11 +116,11 @@ sub needs_save {
     my $arg  = shift;
     if ( defined $arg ) {
         if ($arg) {
-            carp "replace needs_save(1) call with add_change";
+            croak "replace needs_save(1) call with add_change";
             $self->add_change();    # may not work
         }
         else {
-            carp "replace needs_save(0) call with clear_changes";
+            croak "replace needs_save(0) call with clear_changes";
             $self->clear_changes;
         }
     }
@@ -232,7 +234,7 @@ sub register_write_back {
 }
 
 # used for auto_read auto_write feature
-has [qw/name application backend backend_arg backup/] => (
+has [qw/name application backend_arg backup/] => (
     is  => 'ro',
     isa => 'Maybe[Str]',
 );
@@ -386,7 +388,10 @@ sub modify {
     my $self = shift ;
     my %args   = @_ eq 1 ? ( step => $_[0] ) : @_;
     my $force = delete $args{force_save} || delete $args{force};
-    $self->load(%args)->write_back( force => $force );
+    my $quiet = delete $args{quiet};
+    $self->load(%args);
+    $self->say_changes() unless $quiet;
+    $self->write_back( force => $force );
     return $self;
 }
 
@@ -501,11 +506,14 @@ sub list_changes {
 sub say_changes {
     my $self    = shift;
     my @changes = $self->list_changes;
-    say "\n",
-        join( "\n- ", "Changes applied to " . ($self->application // $self->name) . " configuration:", @changes ),
-        "\n"
-        if @changes;
-    return @changes;
+    return $self unless @changes;
+
+    my $msg =  "\n" .
+        join( "\n- ", "Changes applied to " . ($self->application // $self->name) . " configuration:", @changes ) .
+        "\n";
+
+    $user_logger->info($msg);
+    return $self;
 }
 
 sub write_back {
@@ -534,7 +542,7 @@ sub write_back {
             $args{$k} ||= '';
             $args{$k} .= '/' if $args{$k} and $args{$k} !~ m(/$);
         }
-        elsif ( $k !~ /^(config_file|backend)$/ ) {
+        elsif ( $k ne 'config_file' ) {
             croak "write_back: wrong parameters $k";
         }
     }
@@ -566,7 +574,6 @@ sub _write_back_node {
     my %args = @_;
 
     my $path = delete $args{path};
-    my $force_backend = delete $args{backend} || $self->{backend};
     my $force_write   = delete $args{force_write};
 
     my $node = $self->config_root->grab(
@@ -582,7 +589,6 @@ sub _write_back_node {
         my @wb_args = (
             %args,
             config_file   => $self->{config_file},
-            force_backend => $force_backend,
             force         => $force_write,
             backup        => $self->backup,
         );
@@ -591,17 +597,10 @@ sub _write_back_node {
             my $dir = $args{config_dir};
             mkpath( $dir, 0, oct(755) ) if $dir and not -d $dir;
 
-            my $res ;
-            if (not $force_backend
-                or $force_backend eq $backend
-                or $force_backend eq 'all' ) {
-
-                # exit when write is successfull
-                my $res = $cb->(@wb_args);
-                $logger->info( "write_back called with $backend backend, result is ",
-                               defined $res ? $res : '<undef>' );
-                last if ( $res and not $force_backend );
-            }
+            # exit when write is successfull
+            my $res = $cb->(@wb_args);
+            $logger->info( "write_back called with $backend backend, result is ",
+                           defined $res ? $res : '<undef>' );
         }
 
         if (not defined $node) {
@@ -665,7 +664,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.145
+version 2.152
 
 =head1 SYNOPSIS
 
@@ -744,10 +743,6 @@ directory if C<root_dir> is empty.
 Directory to read or write configuration file. This parameter must be
 supplied if not provided by the configuration model. (string)
 
-=item backend
-
-Specify which backend to use. See L</write_back> for details
-
 =item backend_arg
 
 Specify a backend argument that may be retrieved by some
@@ -814,8 +809,20 @@ C<< check => 'no' >> ).
 
 Calls L</"load"> and then L</save>.
 
-Takes the same parameter as C<load> plus C<force_write> to force
-saving configuration file even if no value was modified (default is 0)
+Takes the same parameter as C<load> plus:
+
+=over
+
+=item C<force_write>
+
+Force saving configuration file even if no value was modified
+(default is 0)
+
+=item C<quiet>
+
+Do no display the changes brought by the modification steps
+
+=back
 
 =head2 load
 
@@ -849,14 +856,18 @@ list element have this feature.
 Returns 1 (or more) if the instance contains data that needs to be
 saved. I.e some change were done in the tree that needs to be saved.
 
+=head2 has_changes
+
+Returns true if the instance contains unsasved changes.
+
 =head2 list_changes
 
-In list context, returns a array ref of strings describing the changes. 
+In list context, returns a array ref of strings describing the changes.
 In scalar context, returns a big string. Useful to print.
 
 =head2 say_changes
 
-Print all changes on STDOUT and return the list of changes.
+Print all changes on STDOUT and return C<$self>.
 
 =head2 clear_changes
 
@@ -1026,11 +1037,6 @@ This feature enables you to declare with the model a way to load
 configuration data (and to write it back). See
 L<Config::Model::BackendMgr> for details.
 
-=head2 backend
-
-Get the preferred backend method for this instance (as passed to the
-constructor).
-
 =head2 backend_arg
 
 Get L<cme> command line argument that may be used by the backend to
@@ -1064,7 +1070,7 @@ L<Config::Model::AnyThing/notify_change> for more details.
 In summary, save the content of the configuration tree to
 configuration files.
 
-In more details, C<write_back> trie to run all subroutines registered
+In more details, C<write_back> tries to run all subroutines registered
 with C<register_write_back> to write the configuration information.
 (See L<Config::Model::BackendMgr> for details).
 
@@ -1096,7 +1102,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2005-2021 by Dominique Dumont.
+This software is Copyright (c) 2005-2022 by Dominique Dumont.
 
 This is free software, licensed under:
 

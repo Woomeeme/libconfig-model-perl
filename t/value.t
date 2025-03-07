@@ -13,9 +13,10 @@ use Test::Log::Log4perl;
 
 use strict;
 use warnings;
-$::_use_log4perl_to_warn = 1;
 
 use 5.010;
+
+Test::Log::Log4perl->ignore_priority("info");
 
 binmode STDOUT, ':encoding(UTF-8)';
 
@@ -88,6 +89,10 @@ $model->create_config_class(
             value_type => 'string',
             mandatory  => 1,
             default    => 'booya',
+        },
+        boolean_plain => {
+            type       => 'leaf',
+            value_type => 'boolean',
         },
         boolean_with_write_as => {
             type       => 'leaf',
@@ -344,6 +349,7 @@ subtest "simple scalar" => sub {
     is( $i->needs_check,   0, "check was done during fetch" );
     is( $inst->needs_save, 1, "verify instance needs_save status after fetch" );
 
+    ok($i->check_value(), "call check_value without argument");
 };
 
 subtest "error handling on simple scalar" => sub {
@@ -424,12 +430,16 @@ subtest "mandatory string provided with a default value" => sub {
     is( $inst->needs_save, 0,       "verify instance needs_save status after storing default value" );
 
     $mwdv->store('boo');
-    is( $mwdv->fetch,      'boo', "overrode default" );
+    is( $mwdv->fetch,      'boo', "override default" );
     is( $inst->needs_save, 1,     "verify instance needs_save status after storing another value" );
 
     $mwdv->store(undef);
     is( $mwdv->fetch,      'booya', "restore default by writing undef value in mandatory string" );
     is( $inst->needs_save, 1,       "verify instance needs_save status after restoring default value" );
+
+    $mwdv->store('');
+    is( $mwdv->fetch, 'booya', "restore default by writing empty value in mandatory string" );
+    is( $inst->needs_save, 2, "verify instance needs_save status after restoring default value" );
 
     print join( "\n", $inst->list_changes("\n") ), "\n" if $trace;
     $inst->clear_changes;
@@ -446,20 +456,24 @@ subtest "mandatory boolean" => sub {
     check_store_error( $mb, 'toto', qr/is not boolean/ );
 
     check_store_error( $mb, 2, qr/is not boolean/ );
-
-    my @bool_test = ( 1, 1, yes => 1, Yes => 1, no => 0, Nope => 0, true => 1, False => 0 );
-
-    while (@bool_test) {
-        my $store = shift @bool_test;
-        my $read  = shift @bool_test;
-
-        $mb->store($store);
-
-        is( $mb->fetch, $read, "mandatory boolean: store $store and read $read value" );
-    }
 };
 
-subtest "boolean where values are translated to true/false" => sub {
+subtest "boolean where values are translated" => sub {
+    $inst->clear_changes;
+    my %data = ( 0 => 0, 1 => 1, off => 0, on => 1, no => 0, yes => 1, No => 0, Yes => 1,
+                 NO => 0, YES => 1, true => 1, false => 0, True => 1, False => 0, '' => 0);
+    my $bp = $root->fetch_element('boolean_plain');
+
+    while (my ($v,$expect) =  each %data) {
+        $bp->store($v);
+        is( $bp->fetch, $expect, "boolean_plain: '$v'->'$expect'" );
+    }
+
+    $bp->clear;
+    is( $bp->fetch, undef, "boolean_plain: get 'undef' after clear()" );
+};
+
+subtest "check changes with boolean where values are translated to true/false" => sub {
     $inst->clear_changes;
     my $bwwa = $root->fetch_element('boolean_with_write_as');
     is( $bwwa->fetch, undef, "boolean_with_write_as reads undef" );
@@ -488,6 +502,12 @@ subtest "boolean_with_write_as_and_default" => sub {
     my $bwwaad = $root->fetch_element('boolean_with_write_as_and_default');
     is( $bwwaad->fetch, 'true', "boolean_with_write_as_and_default reads true" );
 
+    $bwwaad->store(0);
+    $bwwaad->clear;
+    is( $bwwaad->fetch, 'true', "boolean_with_write_as_and_default returns 'true'" );
+};
+
+subtest "enum with wrong declaration" => sub {
     throws_ok { $bad_root->fetch_element('crooked_enum'); }
         'Config::Model::Exception::Model',
         "test create expected failure with enum with wrong default";

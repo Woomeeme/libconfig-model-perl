@@ -1,13 +1,13 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2005-2021 by Dominique Dumont.
+# This software is Copyright (c) 2005-2022 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-package Config::Model::BackendTrackOrder 2.145;
+package Config::Model::BackendTrackOrder 2.152;
 
 # ABSTRACT: Track read order of elements from configuration
 
@@ -142,7 +142,7 @@ Config::Model::BackendTrackOrder - Track read order of elements from configurati
 
 =head1 VERSION
 
-version 2.145
+version 2.152
 
 =head1 SYNOPSIS
 
@@ -219,7 +219,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2005-2021 by Dominique Dumont.
+This software is Copyright (c) 2005-2022 by Dominique Dumont.
 
 This is free software, licensed under:
 

@@ -1,13 +1,13 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2005-2021 by Dominique Dumont.
+# This software is Copyright (c) 2005-2022 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-package Config::Model::Node 2.145;
+package Config::Model::Node 2.152;
 
 use Mouse;
 with "Config::Model::Role::NodeLoader";
@@ -673,8 +673,7 @@ sub fetch_element ($self, @args) {
         # FIXME elaborate more ? or include parameter description ??
         my $msg = "Element '$element_name' of node '". $self->name. "' is deprecated";
         if (not $self->was_element_warned($element_name)) {
-            if ($::_use_log4perl_to_warn) { $user_logger->warn($msg); }
-            else                          { warn("$msg\n"); }
+            $user_logger->warn($msg);
             $self->warn_element_done($element_name,1);
         }
         # this will also force a rewrite of the file even if no other
@@ -800,16 +799,11 @@ sub _get_accepted_data {
             my $dist = $tld->dld_best_distance($tld_arg);
             if ($dist < 3) {
                 my $best = $tld->dld_best_match($tld_arg);
-                if ($::_use_log4perl_to_warn) {
-                    $user_logger->warn("Warning: ".$self->location
+                $user_logger->warn(
+                    "Warning: ".$self->location
                     ." '$name' is confusingly close to '$best' (edit distance is $dist)."
-                    ." Is there a typo ?");
-                }
-                else {
-                    warn "Warning: ".$self->location
-                        ." '$name' is confusingly close to '$best' (edit distance is $dist)."
-                        ." Is there a typo ?\n";
-                }
+                    ." Is there a typo ?"
+                );
             }
 
         }
@@ -1135,7 +1129,7 @@ sub apply_fixes ($self, $filter='' ) {
     $fix_logger->debug( "apply fix started from ", $self->name );
     $scan->scan_node( undef, $self );
     $fix_logger->trace("apply fix done");
-    return;
+    return $self;
 }
 
 sub deep_check ($self, %args){
@@ -1187,7 +1181,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.145
+version 2.152
 
 =head1 SYNOPSIS
 
@@ -1841,7 +1835,7 @@ deprecated elements or values. Return 1 if data needs to be saved.
 =head2 apply_fixes
 
 Scan the tree from this node and apply fixes that are attached to warning specifications.
-See C<warn_if_match> or C<warn_unless_match> in L<Config::Model::Value/>.
+See C<warn_if_match> or C<warn_unless_match> in L<Config::Model::Value/>. Return C<$self> since v2.151.
 
 =head2 load
 
@@ -1985,7 +1979,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2005-2021 by Dominique Dumont.
+This software is Copyright (c) 2005-2022 by Dominique Dumont.
 
 This is free software, licensed under:
 

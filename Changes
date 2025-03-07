@@ -1,3 +1,64 @@
+2.152 2022-07-28
+
+  Bug fixes:
+    * fix regression (Value): error_msg now returns empty string
+      when there's no error 
+
+2.151 2022-07-26
+
+  Bug fixes:
+    * fix (Value): do not check compute result with mandatory value
+      (Debian #1015913)
+    * fix (Value): consider an empty string as an unset value
+
+  Misc:
+    * Node: apply_fixes now returns $self
+
+2.150 2022-05-08
+
+  New features:
+    * Loader: add list:.ensure(value) function
+
+  Bug fixes:
+    * Loader: fix reading JSON file with utf8 characters
+
+2.149 2022-01-13
+
+  Bug fixes:
+    * fix regression with check_value method
+
+2.148 2022-01-09
+
+  Bug fixes:
+    * fix (Exception): keep ref to instance object
+    * fix (Hashid): improve warning message when loading non ordered data
+    * fix (modify instance): show changes before saving
+
+2.147 2021-11-29
+
+  Bug fixes:
+   * fix (test): ignore info Log.
+
+2.146 2021-11-28
+
+  Model improvements:
+    * fstab: add suid/nosuid (thanks Topi Miettinen)
+    * feat (fstab model): add umask element in common options
+    * feat (fstab model): add description to common options
+  
+  Bug fixes:
+    * feat (Instance): modify methoed displays changes before saving
+    * fix (Loader): typo in .substitute load string command
+    * fix (Grab): improve error message of grab_value
+    * fix (TermUI):  add completion to display command
+    * fix (SimpleUI): simplify error message shown to user
+    * fix (SimpleUI): avoid undef warnings
+    * fix (Describe): truncate long lines
+    * fix (Describe): show default value in comments
+    * fix (Describe): show value in user mode
+    * Value: accept on/off as boolean values
+    * fix: test error with perl 5.20 (Closes gh #32)
+
 2.145 2021-11-06
 
   Bug fixes:

@@ -1,3 +1,71 @@
+libconfig-model-perl (2.152-1) unstable; urgency=medium
+
+  * New upstream version 2.152
+    * fix regression (Value) that broke the GUI: error_msg now
+      returns empty string when there's no error
+
+ -- Dominique Dumont <dod@debian.org>  Thu, 28 Jul 2022 11:39:37 +0200
+
+libconfig-model-perl (2.151-2) unstable; urgency=medium
+
+  * control: add breaks on libconfig-model-dpkg-perl (<<2.162)
+
+ -- Dominique Dumont <dod@debian.org>  Wed, 27 Jul 2022 18:33:29 +0200
+
+libconfig-model-perl (2.151-1) unstable; urgency=medium
+
+  * New upstream version 2.151
+    * fix (Value): do not check compute result with mandatory value
+      (related to #1015913)
+    * Node: apply_fixes now returns $self
+  * control: declare compliance with policy 4.6.1
+
+ -- Dominique Dumont <dod@debian.org>  Wed, 27 Jul 2022 17:44:18 +0200
+
+libconfig-model-perl (2.150-1) unstable; urgency=medium
+
+  * New upstream version 2.150
+    * Loader: add list:.ensure(value) function
+    * Loader: fix reading JSON file with utf8 characters
+  * control: add Breaks cme << 1.036
+
+ -- Dominique Dumont <dod@debian.org>  Tue, 10 May 2022 19:35:26 +0200
+
+libconfig-model-perl (2.149-1) unstable; urgency=medium
+
+  * New upstream version 2.149
+    * fix regression with check_value method
+
+ -- Dominique Dumont <dod@debian.org>  Fri, 14 Jan 2022 14:47:31 +0100
+
+libconfig-model-perl (2.148-1) unstable; urgency=medium
+
+  * New upstream version 2.148
+    * fix (Exception): avoid double crash (keep ref to instance object)
+    * fix (modify instance): show changes before saving
+  * updated copyright year of Dominique Dumont
+
+ -- Dominique Dumont <dod@debian.org>  Tue, 11 Jan 2022 12:42:16 +0100
+
+libconfig-model-perl (2.147-1) unstable; urgency=medium
+
+  * New upstream version 2.147
+    * fstab: add suid/nosuid (thanks Topi Miettinen)
+    * feat (fstab model): add umask element in common options
+    * feat (fstab model): add description to common options
+    * feat (Instance): modify method displays changes before saving
+    * fix (Grab): improve error message of grab_value
+    * fix (TermUI):  add completion to display command
+    * fix (SimpleUI): simplify error message shown to user
+    * fix (SimpleUI): avoid undef warnings
+    * fix (Describe): truncate long lines
+    * fix (Describe): show default value in comments
+    * fix (Describe): show value in user mode
+    * Value: accept on/off as boolean values
+  * control: set Rules-Requires-Root: no
+
+ -- Dominique Dumont <dod@debian.org>  Sun, 05 Dec 2021 19:53:42 +0100
+
 libconfig-model-perl (2.145-1) unstable; urgency=medium
 
   * New upstream version 2.145
